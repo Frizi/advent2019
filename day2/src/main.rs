@@ -6,7 +6,7 @@ type DynResult<T> = Result<T, Box<dyn std::error::Error>>;
 type Word = u32;
 
 fn main() -> DynResult<()> {
-    let mem: DynResult<Vec<Word>> = std::fs::read("input-day2.txt")?
+    let mem: DynResult<Vec<Word>> = std::fs::read("day2-input.txt")?
         .split(|c| *c as char == ',')
         .map(|slice| -> DynResult<Word> { Ok(std::str::from_utf8(slice)?.parse()?) })
         .collect();

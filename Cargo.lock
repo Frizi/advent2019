@@ -16,6 +16,17 @@ name = "day3"
 version = "0.1.0"
 
 [[package]]
+name = "day4"
+version = "0.1.0"
+
+[[package]]
+name = "day5"
+version = "0.1.0"
+dependencies = [
+ "num_enum 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "derivative"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
