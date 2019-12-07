@@ -1,4 +1,4 @@
-use std::collections::{HashMap,VecDeque};
+use std::collections::{HashMap, VecDeque};
 
 type DynResult<T> = Result<T, Box<dyn std::error::Error>>;
 
@@ -14,12 +14,25 @@ fn main() -> DynResult<()> {
 
     for orbit_data in data {
         let mut split = orbit_data.split(|c| *c as char == ')');
-        let lhs = split.next().unwrap_or_else(|| panic!("Missing orbit center in '{}'", std::str::from_utf8(orbit_data).unwrap()));
-        let rhs = split.next().unwrap_or_else(|| panic!("Missing orbiting body in '{}'", std::str::from_utf8(orbit_data).unwrap()));
+        let lhs = split.next().unwrap_or_else(|| {
+            panic!(
+                "Missing orbit center in '{}'",
+                std::str::from_utf8(orbit_data).unwrap()
+            )
+        });
+        let rhs = split.next().unwrap_or_else(|| {
+            panic!(
+                "Missing orbiting body in '{}'",
+                std::str::from_utf8(orbit_data).unwrap()
+            )
+        });
         assert_eq!(split.next(), None);
         let lhs = as_num(lhs);
         let rhs = as_num(rhs);
-        orbiters_map.entry(lhs).and_modify(|vec| vec.push(rhs)).or_insert_with(|| vec![rhs]);
+        orbiters_map
+            .entry(lhs)
+            .and_modify(|vec| vec.push(rhs))
+            .or_insert_with(|| vec![rhs]);
         orbits_map.insert(rhs, lhs);
     }
 
@@ -48,7 +61,7 @@ fn main() -> DynResult<()> {
 
     let you = as_num("YOU".as_bytes());
     let san = as_num("SAN".as_bytes());
-    
+
     let mut parent_dist_map = HashMap::new();
     let mut current = you;
     let mut path_len = 0;

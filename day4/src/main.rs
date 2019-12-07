@@ -1,7 +1,6 @@
 fn main() {
     let mut total = 0;
-    'search:
-    for input in 153517..630395 {
+    'search: for input in 153517..630395 {
         let mut remaining = input;
         let mut counts = [0usize; 10];
         let mut last = None;
@@ -23,4 +22,3 @@ fn main() {
 
     println!("total: {}", total);
 }
-
