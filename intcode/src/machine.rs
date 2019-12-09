@@ -17,6 +17,7 @@ enum Op {
     JumpIfFalse = 6,
     LessThan = 7,
     Equals = 8,
+    OffsetRel = 9,
     Halt = 99,
 }
 
@@ -25,11 +26,13 @@ enum Op {
 enum ParamMode {
     Pointer = 0,
     Immediate = 1,
+    Relative = 2,
 }
 
 pub struct Machine {
     mem: Vec<Word>,
     ip: Word,
+    rel: Word,
     decoded: (Op, [ParamMode; 3]),
 }
 
@@ -57,6 +60,7 @@ impl Machine {
     pub fn new(mem_data: Vec<Word>) -> Self {
         Self {
             ip: 0,
+            rel: 0,
             mem: mem_data,
             decoded: (Op::Halt, [ParamMode::Pointer; 3]),
         }
@@ -93,20 +97,30 @@ impl Machine {
         match self.decoded.1[param] {
             ParamMode::Pointer => self.read_mem_at(value),
             ParamMode::Immediate => value,
+            ParamMode::Relative => self.read_mem_at(value + self.rel),
         }
     }
 
     #[inline]
     fn write(&mut self, param: usize, val: Word) {
-        let address = self.get_param(param);
-        assert!(address >= 0);
-        self.mem[address as usize] = val;
+        let read_addr = match self.decoded.1[param] {
+            ParamMode::Pointer => self.get_param(param),
+            ParamMode::Immediate => panic!("Cannot write to immediate value."),
+            ParamMode::Relative => self.get_param(param) + self.rel,
+        };
+        assert!(read_addr >= 0);
+        let address = read_addr as usize;
+
+        if self.mem.len() <= address {
+            self.mem.resize(address + 1, 0);
+        }
+        self.mem[address] = val;
     }
 
     #[inline]
     pub fn read_mem_at(&self, address: Word) -> Word {
         assert!(address >= 0);
-        self.mem[address as usize]
+        self.mem.get(address as usize).copied().unwrap_or(0)
     }
 
     pub fn execute(&mut self, io: &mut impl Io) {
@@ -181,6 +195,12 @@ impl Machine {
                 self.ip += 4;
                 StepResult::Continue
             }
+            Op::OffsetRel => {
+                let a = self.read(0);
+                self.rel += a;
+                self.ip += 2;
+                StepResult::Continue
+            }
             Op::Halt => StepResult::Halt,
         }
     }
@@ -227,4 +247,26 @@ fn test_jumps_larger() {
     assert_eq!(test_machine(prog.clone(), vec![7]), &[999]);
     assert_eq!(test_machine(prog.clone(), vec![8]), &[1000]);
     assert_eq!(test_machine(prog.clone(), vec![9]), &[1001]);
+}
+#[test]
+fn test_quine() {
+    let prog = vec![
+        109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99,
+    ];
+    let out = test_machine(prog.clone(), vec![]);
+    assert_eq!(&out, &prog);
+}
+
+#[test]
+fn test_large_number_output() {
+    let prog = vec![1102, 34915192, 34915192, 7, 4, 7, 99, 0];
+    let out = test_machine(prog, vec![]);
+    assert_eq!(&out, &[1219070632396864]);
+}
+
+#[test]
+fn test_large_number_code() {
+    let prog = vec![104, 1125899906842624, 99];
+    let out = test_machine(prog, vec![]);
+    assert_eq!(&out, &[1125899906842624]);
 }

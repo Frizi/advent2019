@@ -13,10 +13,17 @@ impl Io for StdIo {
         let mut input = String::new();
         loop {
             match std::io::stdin().read_line(&mut input) {
-                Ok(_) => match input[0..input.len() - 1].parse::<Word>() {
-                    Err(e) => eprintln!("Invalid input: {}. Enter valid number.", e),
-                    Ok(val) => return Some(val),
-                },
+                Ok(_) => {
+                    let crlf = input
+                        .chars()
+                        .position(|c| c == '\n' || c == '\r')
+                        .unwrap_or(input.len());
+
+                    match input[0..crlf].parse::<Word>() {
+                        Err(e) => eprintln!("Invalid input: {}. Enter valid number.", e),
+                        Ok(val) => return Some(val),
+                    }
+                }
                 Err(error) => {
                     panic!("Error reading input: {}", error);
                 }
