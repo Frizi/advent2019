@@ -135,7 +135,7 @@ impl Machine {
 
     pub fn step(&mut self, io: &mut impl Io) -> StepResult {
         self.decoded = self.fetch();
-        // println!("[{}]: {:?}", self.ip, self.decoded);
+        // println!("[{}, {}]: {:?}", self.ip, self.rel, self.decoded);
         match self.decoded.0 {
             Op::Add => {
                 let a = self.read(0);

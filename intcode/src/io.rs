@@ -12,6 +12,7 @@ impl Io for StdIo {
     fn read_in(&mut self) -> Option<Word> {
         let mut input = String::new();
         loop {
+            input.clear();
             match std::io::stdin().read_line(&mut input) {
                 Ok(_) => {
                     let crlf = input
